@@ -1,4 +1,4 @@
-# exment-official-plugins
+# exment-plugins-release
 
 The free official plugins of [Exment](https://github.com/exceedone/exment), bundled with it (ISS00419):
 
