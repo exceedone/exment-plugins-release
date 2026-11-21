@@ -1,0 +1,18 @@
+{
+    "name": "exceedone/exment-plugins-release",
+    "description": "The free official plugins of Exment (ExmentPM, IT Support, Groupware), as signed releases. Exment installs one only when a system administrator chooses it (Admin setting > Feature management).",
+    "type": "library",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Exceed One Co.,Ltd.",
+            "homepage": "https://exment.net"
+        }
+    ],
+    "require": {
+        "php": "^8.2.0"
+    },
+    "archive": {
+        "exclude": [".github", "tools"]
+    }
+}
