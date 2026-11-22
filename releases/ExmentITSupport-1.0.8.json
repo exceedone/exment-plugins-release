@@ -1,0 +1,11 @@
+{
+    "format": "exment-plugin-release/1",
+    "uuid": "6b1f2c0e-7a4d-4e8b-9c35-1d2e8f4a7b90",
+    "name": "ExmentITSupport",
+    "version": "1.0.8",
+    "exment_requires": ">=7.2.0 <7.3",
+    "php_requires": ">=8.2",
+    "sha256": "e91ef9b9d21c2a275768fc4ee79a717d56e0f9d755b09feb4bf7e8c91079e892",
+    "size": 143557,
+    "released_at": "2026-11-22T14:28:42Z"
+}
