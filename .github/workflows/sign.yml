@@ -8,6 +8,11 @@ on:
     branches: ['release/**']
     paths: ['releases/*.json']
   workflow_dispatch:
+    inputs:
+      check_only:
+        description: 'Only check that the key is a trusted one (sign nothing)'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -46,7 +51,7 @@ jobs:
           echo "to sign: ${todo:-none}"
 
       - name: Sign
-        if: ${{ steps.list.outputs.files != '' }}
+        if: ${{ steps.list.outputs.files != '' || inputs.check_only }}
         env:
           RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
         run: |
