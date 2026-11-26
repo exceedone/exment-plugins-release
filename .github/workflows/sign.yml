@@ -58,6 +58,20 @@ jobs:
           # the key must be one Exment trusts (ReleaseVerifier::TRUSTED_KEYS); nothing about it is printed
           php -r '
             $k = json_decode(file_get_contents($argv[1]), true);
+            // the secret may also be only the base64 secret_key: find the trusted key_id it belongs to
+            if (!is_array($k)) {
+                $b = base64_decode(trim((string) file_get_contents($argv[1])), true);
+                if ($b !== false && strlen($b) === SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) {
+                    $pub = base64_encode(sodium_crypto_sign_publickey_from_secretkey($b));
+                    foreach (["release-2026-1" => "1139S0QrS0q0a5azJfCqysobCHwWPWuADLhLdVJj49c=", "release-2026-2" => "8I+81EvIf3v/pNNFZFoUe65qOzociOpPgSPlDrgEIo4="] as $tid => $tpub) {
+                        if (hash_equals($tpub, $pub)) {
+                            $k = ["key_id" => $tid, "secret_key" => base64_encode($b)];
+                            file_put_contents($argv[1], json_encode($k));
+                        }
+                    }
+                }
+                sodium_memzero($b);
+            }
             $trusted = ["release-2026-1" => "1139S0QrS0q0a5azJfCqysobCHwWPWuADLhLdVJj49c=", "release-2026-2" => "8I+81EvIf3v/pNNFZFoUe65qOzociOpPgSPlDrgEIo4="];
             $s = is_array($k) ? base64_decode((string) ($k["secret_key"] ?? ""), true) : false;
             $id = is_array($k) ? (string) ($k["key_id"] ?? "") : "";
