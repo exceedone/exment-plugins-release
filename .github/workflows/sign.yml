@@ -1,0 +1,81 @@
+# Signs the release records pushed to release/* branches by the release workflow of exment-plugins.
+# The key is in the environment secret RELEASE_SIGNING_KEY (environment "release-signing",
+# only release/* branches). It is written to a temporary file, never printed, and removed.
+name: sign
+
+on:
+  push:
+    branches: ['release/**']
+    paths: ['releases/*.json']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sign-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    # the commit made by this job is pushed with GITHUB_TOKEN, which starts no new run
+    if: ${{ startsWith(github.ref_name, 'release/') && (github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'sign:')) }}
+    runs-on: ubuntu-24.04
+    environment: release-signing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: sodium, zip
+          coverage: none
+
+      - name: Records to sign
+        id: list
+        run: |
+          set -euo pipefail
+          todo=""
+          for f in releases/*.json; do
+            php -r '$r=json_decode(file_get_contents($argv[1]),true); exit(is_array($r) && empty($r["signature"]) ? 0 : 1);' "$f" && todo="$todo $f" || true
+          done
+          echo "files=${todo# }" >> "$GITHUB_OUTPUT"
+          echo "to sign: ${todo:-none}"
+
+      - name: Sign
+        if: ${{ steps.list.outputs.files != '' }}
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          KEY="$RUNNER_TEMP/release.key"
+          trap 'rm -f "$KEY"' EXIT
+          printf '%s' "$RELEASE_SIGNING_KEY" > "$KEY"
+          # the key must be one Exment trusts (ReleaseVerifier::TRUSTED_KEYS); nothing about it is printed
+          php -r '
+            $k = json_decode(file_get_contents($argv[1]), true);
+            $trusted = ["release-2026-1" => "1139S0QrS0q0a5azJfCqysobCHwWPWuADLhLdVJj49c=", "release-2026-2" => "8I+81EvIf3v/pNNFZFoUe65qOzociOpPgSPlDrgEIo4="];
+            $s = is_array($k) ? base64_decode((string) ($k["secret_key"] ?? ""), true) : false;
+            $id = is_array($k) ? (string) ($k["key_id"] ?? "") : "";
+            if ($s === false || strlen($s) !== SODIUM_CRYPTO_SIGN_SECRETKEYBYTES || !isset($trusted[$id])
+                || !hash_equals($trusted[$id], base64_encode(sodium_crypto_sign_publickey_from_secretkey($s)))) {
+                fwrite(STDERR, "the signing key is not one Exment trusts\n"); exit(1);
+            }
+            echo "key ok: $id\n";
+          ' "$KEY"
+          names=""
+          for f in ${{ steps.list.outputs.files }}; do
+            php tools/release.php sign "$f" "$KEY"
+            names="$names $(basename "$f" .json)"
+          done
+          rm -f "$KEY"
+          git config user.name "exment-release-signer"
+          git config user.email "exment-release-signer@users.noreply.github.com"
+          git add releases/*.json
+          KEY_ID=$(php -r '$r=json_decode(file_get_contents($argv[1]),true); echo $r["key_id"];' $(echo ${{ steps.list.outputs.files }} | cut -d' ' -f1))
+          git commit -m "sign:${names} (${KEY_ID})"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
