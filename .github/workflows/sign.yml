@@ -70,7 +70,11 @@ jobs:
                         }
                     }
                 }
-                sodium_memzero($b);
+                if (!is_array($k)) {
+                    $t = trim((string) file_get_contents($argv[1]));
+                    fwrite(STDERR, "secret shape: length " . strlen($t) . ", base64 " . ($b === false ? "no" : "yes, " . strlen($b) . " bytes") . ", starts with { " . (str_starts_with($t, "{") ? "yes" : "no") . ", quotes " . (str_contains($t, "\"") ? "yes" : "no") . ", spaces " . (preg_match("/\\s/", $t) ? "yes" : "no") . "\n");
+                }
+                if (is_string($b)) { sodium_memzero($b); }
             }
             $trusted = ["release-2026-1" => "1139S0QrS0q0a5azJfCqysobCHwWPWuADLhLdVJj49c=", "release-2026-2" => "8I+81EvIf3v/pNNFZFoUe65qOzociOpPgSPlDrgEIo4="];
             $s = is_array($k) ? base64_decode((string) ($k["secret_key"] ?? ""), true) : false;
