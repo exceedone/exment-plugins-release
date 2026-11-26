@@ -7,6 +7,7 @@ on:
   push:
     branches: ['release/**']
     paths: ['releases/*.json']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -18,7 +19,7 @@ concurrency:
 jobs:
   sign:
     # the commit made by this job is pushed with GITHUB_TOKEN, which starts no new run
-    if: ${{ !startsWith(github.event.head_commit.message, 'sign:') }}
+    if: ${{ startsWith(github.ref_name, 'release/') && (github.event_name == 'workflow_dispatch' || !startsWith(github.event.head_commit.message, 'sign:')) }}
     runs-on: ubuntu-24.04
     environment: release-signing
     steps:
