@@ -61,10 +61,14 @@ jobs:
             $trusted = ["release-2026-1" => "1139S0QrS0q0a5azJfCqysobCHwWPWuADLhLdVJj49c=", "release-2026-2" => "8I+81EvIf3v/pNNFZFoUe65qOzociOpPgSPlDrgEIo4="];
             $s = is_array($k) ? base64_decode((string) ($k["secret_key"] ?? ""), true) : false;
             $id = is_array($k) ? (string) ($k["key_id"] ?? "") : "";
-            if ($s === false || strlen($s) !== SODIUM_CRYPTO_SIGN_SECRETKEYBYTES || !isset($trusted[$id])
-                || !hash_equals($trusted[$id], base64_encode(sodium_crypto_sign_publickey_from_secretkey($s)))) {
-                fwrite(STDERR, "the signing key is not one Exment trusts\n"); exit(1);
-            }
+            $raw = (string) file_get_contents($argv[1]);
+            $why = "";
+            if (trim($raw) === "") { $why = "the secret is empty (environment name or secret name?)"; }
+            elseif (!is_array($k)) { $why = "the secret is not the JSON of a key file (length " . strlen($raw) . ")"; }
+            elseif (!isset($trusted[$id])) { $why = "key_id is not a trusted one: " . preg_replace("/[^a-z0-9-]/", "", $id); }
+            elseif ($s === false || strlen($s) !== SODIUM_CRYPTO_SIGN_SECRETKEYBYTES) { $why = "secret_key is not a 64-byte base64 value"; }
+            elseif (!hash_equals($trusted[$id], base64_encode(sodium_crypto_sign_publickey_from_secretkey($s)))) { $why = "the key does not match the trusted public key of " . $id; }
+            if ($why !== "") { fwrite(STDERR, "the signing key is not one Exment trusts: $why\n"); exit(1); }
             echo "key ok: $id\n";
           ' "$KEY"
           names=""
