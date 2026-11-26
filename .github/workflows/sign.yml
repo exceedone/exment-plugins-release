@@ -94,6 +94,10 @@ jobs:
             if ($why !== "") { fwrite(STDERR, "the signing key is not one Exment trusts: $why\n"); exit(1); }
             echo "key ok: $id\n";
           ' "$KEY"
+          if [ "${{ inputs.check_only }}" = "true" ]; then
+            echo "check only: the key is a trusted one; nothing was signed"
+            exit 0
+          fi
           names=""
           for f in ${{ steps.list.outputs.files }}; do
             php tools/release.php sign "$f" "$KEY"
