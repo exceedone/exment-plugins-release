@@ -1,0 +1,13 @@
+{
+    "format": "exment-plugin-release/1",
+    "uuid": "9eef3996-557e-4a1e-990d-9d5302fa35a8",
+    "name": "ExmentGroupware",
+    "version": "0.5.1",
+    "exment_requires": ">=7.2.0 <7.4",
+    "php_requires": ">=8.2",
+    "sha256": "3b6b90384f2e669dd5eb2e4d076f43f72a3d1b192d1041d1904f53a46def2b53",
+    "size": 337915,
+    "released_at": "2026-11-27T20:56:49Z",
+    "key_id": "release-2026-1",
+    "signature": "n/FFh8tZM/eTV9RbPXWtXlKm9AF4qXsXXsuLxG870lkYW3S/F+HYyg8OqneL7eKM+lCkjP6iWhf5xXYayjJbBw=="
+}
