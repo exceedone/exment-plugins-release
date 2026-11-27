@@ -7,5 +7,7 @@
     "php_requires": ">=8.2",
     "sha256": "49bd14e300b2829d05dafa645435ca87059e133480b3d0fbb12767f68919f583",
     "size": 254896,
-    "released_at": "2026-11-27T20:56:36Z"
+    "released_at": "2026-11-27T20:56:36Z",
+    "key_id": "release-2026-1",
+    "signature": "hs4+bknLCTPwCkHXhPS6rYVwR9ROaXaJhoUehFmBIpMWOuesoUCxPskFq/o9zQJbE1A3ADr1rHyBC48KYacwAA=="
 }
